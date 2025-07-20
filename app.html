@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rebecca & Ben's Wedding - Seating Plan</title>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Source Sans Pro', sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        
+        // Lucide icons as simple SVG components
+        const Search = ({ size = 24, style = {} }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}>
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+            </svg>
+        );
+        
+        const Users = ({ size = 24, style = {} }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}>
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+        );
+        
+        const Utensils = ({ size = 24, style = {} }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}>
+                <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path>
+                <path d="M7 2v20"></path>
+                <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"></path>
+            </svg>
+        );
+
+        const WeddingSeatingDirectory = () => {
+          // Embedded guest data - fully static
+          const guestData = [
+            // Cambodia Table
+            { name: "Alex Wycherley", table: "Cambodia", starter: "Feta and black olive arancini", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Andrew Thompson", table: "Cambodia", starter: "Not selected", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Bethany Sterling", table: "Cambodia", starter: "Sundried tomato tart", main: "Garlic roasted butternut squash risotto", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "James Sterling", table: "Cambodia", starter: "Pulled chicken terrine", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Jose Manuel Hernández Roldán", table: "Cambodia", starter: "Feta and black olive arancini", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Nathalie Burt", table: "Cambodia", starter: "Pulled chicken terrine", main: "Garlic roasted butternut squash risotto", dessert: "Choc and orange tart, orange gel" },
+            { name: "Richard McIntyre", table: "Cambodia", starter: "Pulled chicken terrine", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Ruth McIntyre", table: "Cambodia", starter: "Feta and black olive arancini", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Sophie Jefferson", table: "Cambodia", starter: "Feta and black olive arancini", main: "Garlic roasted butternut squash risotto", dessert: "Choc and orange tart, orange gel" },
+            { name: "Sophy McIntyre", table: "Cambodia", starter: "Sundried tomato tart", main: "Seared salmon medalion", dessert: "Choc and orange tart, orange gel" },
+            
+            // Dublin Table
+            { name: "Anthony Burke", table: "Dublin", starter: "Pulled chicken terrine", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Brendan McIntyre", table: "Dublin", starter: "Pulled chicken terrine", main: "Seared salmon medalion", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Evelyn Burke", table: "Dublin", starter: "Pulled chicken terrine", main: "Seared salmon medalion", dessert: "Choc and orange tart, orange gel" },
+            { name: "Gabriela Isas", table: "Dublin", starter: "Pulled chicken terrine", main: "Seared salmon medalion", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Grandma", table: "Dublin", starter: "Pulled chicken terrine", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Sue McIntyre", table: "Dublin", starter: "Pulled chicken terrine", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Teresa McIntyre", table: "Dublin", starter: "Feta and black olive arancini", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Tom McIntyre", table: "Dublin", starter: "Pulled chicken terrine", main: "Seared salmon medalion", dessert: "Sticky toffee pudding" },
+            
+            // Durham Table
+            { name: "Adam Richardson", table: "Durham", starter: "Feta and black olive arancini", main: "Garlic roasted butternut squash risotto", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Ben (Groom)", table: "Durham", starter: "Feta and black olive arancini", main: "Seared salmon medalion", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Christopher Taylor", table: "Durham", starter: "Feta and black olive arancini", main: "Seared salmon medalion", dessert: "Sticky toffee pudding" },
+            { name: "Clare McIntyre", table: "Durham", starter: "Pulled chicken terrine", main: "Seared salmon medalion", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Elaine Walker", table: "Durham", starter: "Feta and black olive arancini", main: "Seared salmon medalion", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Emma McIntyre", table: "Durham", starter: "Pulled chicken terrine", main: "Seared salmon medalion", dessert: "Choc and orange tart, orange gel" },
+            { name: "John McIntyre", table: "Durham", starter: "Pulled chicken terrine", main: "Seared salmon medalion", dessert: "Choc and orange tart, orange gel" },
+            { name: "Neil Jones", table: "Durham", starter: "Sundried tomato tart", main: "Pesto roasted chicken breast", dessert: "Choc and orange tart, orange gel" },
+            { name: "Rebecca (Bride)", table: "Durham", starter: "Feta and black olive arancini", main: "Seared salmon medalion", dessert: "Choc and orange tart, orange gel" },
+            { name: "Victoria Taylor", table: "Durham", starter: "Sundried tomato tart", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            
+            // Florence Table
+            { name: "Alex Jones", table: "Florence", starter: "Pulled chicken terrine", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Barrie Jones", table: "Florence", starter: "Sundried tomato tart", main: "Seared salmon medalion", dessert: "Choc and orange tart, orange gel" },
+            { name: "Chris Dundsdon", table: "Florence", starter: "Sundried tomato tart", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Emma Kemendi", table: "Florence", starter: "Sundried tomato tart", main: "Seared salmon medalion", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Farrell Tang", table: "Florence", starter: "Feta and black olive arancini", main: "Garlic roasted butternut squash risotto", dessert: "Sticky toffee pudding" },
+            { name: "Heather Smith", table: "Florence", starter: "Pulled chicken terrine", main: "Seared salmon medalion", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Jake Jones", table: "Florence", starter: "Pulled chicken terrine", main: "Seared salmon medalion", dessert: "Sticky toffee pudding" },
+            { name: "Linda Allen", table: "Florence", starter: "Sundried tomato tart", main: "Seared salmon medalion", dessert: "Choc and orange tart, orange gel" },
+            { name: "Paul Jones", table: "Florence", starter: "Pulled chicken terrine", main: "Pesto roasted chicken breast", dessert: "Choc and orange tart, orange gel" },
+            { name: "Sarah Dunsdon", table: "Florence", starter: "Pulled chicken terrine", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            
+            // La Plagne Table
+            { name: "Clara Wernert", table: "La Plagne", starter: "Pulled chicken terrine", main: "Seared salmon medalion", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Emma Simpson", table: "La Plagne", starter: "Feta and black olive arancini", main: "Garlic roasted butternut squash risotto", dessert: "Sticky toffee pudding" },
+            { name: "Fan Dickson", table: "La Plagne", starter: "Feta and black olive arancini", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Laura Bland", table: "La Plagne", starter: "Feta and black olive arancini", main: "Garlic roasted butternut squash risotto", dessert: "Sticky toffee pudding" },
+            { name: "Laurel Lewis", table: "La Plagne", starter: "Sundried tomato tart", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Lorcan Rowley", table: "La Plagne", starter: "Pulled chicken terrine", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Matthew Wernert", table: "La Plagne", starter: "Sundried tomato tart", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Nat Martin", table: "La Plagne", starter: "Feta and black olive arancini", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Nick Denton", table: "La Plagne", starter: "Feta and black olive arancini", main: "Seared salmon medalion", dessert: "Sticky toffee pudding" },
+            
+            // Mexico Table
+            { name: "Aiden Reidy", table: "Mexico", starter: "Pulled chicken terrine", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Connor Price", table: "Mexico", starter: "Feta and black olive arancini", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Daniel Buss", table: "Mexico", starter: "Feta and black olive arancini", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "James Moore", table: "Mexico", starter: "Feta and black olive arancini", main: "Seared salmon medalion", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Jordan Hillman", table: "Mexico", starter: "Sundried tomato tart", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Nicholas Chalk", table: "Mexico", starter: "Pulled chicken terrine", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Sam Keyte", table: "Mexico", starter: "Sundried tomato tart", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            
+            // Munich Table
+            { name: "Alice Jones", table: "Munich", starter: "Sundried tomato tart", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Billy Nelson", table: "Munich", starter: "Feta and black olive arancini", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Jayne Walker", table: "Munich", starter: "Pulled chicken terrine", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Louise Dunn", table: "Munich", starter: "Pulled chicken terrine", main: "Seared salmon medalion", dessert: "None selected" },
+            { name: "Luke Jones", table: "Munich", starter: "Sundried tomato tart", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Robert Fry", table: "Munich", starter: "Sundried tomato tart", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Roy Walker", table: "Munich", starter: "Feta and black olive arancini", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Sam Corke", table: "Munich", starter: "Pulled chicken terrine", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Sharon Walker", table: "Munich", starter: "Feta and black olive arancini", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Steve Walker", table: "Munich", starter: "Pulled chicken terrine", main: "Pesto roasted chicken breast", dessert: "Choc and orange tart, orange gel" },
+            
+            // Slovenia Table
+            { name: "Alexander Young", table: "Slovenia", starter: "Sundried tomato tart", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Beth Kirby", table: "Slovenia", starter: "Pulled chicken terrine", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Dan Steel", table: "Slovenia", starter: "Pulled chicken terrine", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Isy Williams", table: "Slovenia", starter: "Feta and black olive arancini", main: "Seared salmon medalion", dessert: "Sticky toffee pudding" },
+            { name: "Katrina Young", table: "Slovenia", starter: "Sundried tomato tart", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Lizzie Steel", table: "Slovenia", starter: "Pulled chicken terrine", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Matt Evans", table: "Slovenia", starter: "Pulled chicken terrine", main: "Garlic roasted butternut squash risotto", dessert: "Choc and orange tart, orange gel" },
+            { name: "Sam Webb", table: "Slovenia", starter: "Feta and black olive arancini", main: "Garlic roasted butternut squash risotto", dessert: "White chocolate & raspberry cheesecake" },
+            
+            // South Tyrol Table
+            { name: "Connor Jones", table: "South Tyrol", starter: "Pulled chicken terrine", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Grace Reeve", table: "South Tyrol", starter: "Feta and black olive arancini", main: "Garlic roasted butternut squash risotto", dessert: "Sticky toffee pudding" },
+            { name: "Hannah Jones", table: "South Tyrol", starter: "Pulled chicken terrine", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Joanna Birt", table: "South Tyrol", starter: "Pulled chicken terrine", main: "Seared salmon medalion", dessert: "Choc and orange tart, orange gel" },
+            { name: "Sarah Robinson", table: "South Tyrol", starter: "Sundried tomato tart", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Sophie Woodburn", table: "South Tyrol", starter: "Sundried tomato tart", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Tessa Wallis", table: "South Tyrol", starter: "Pulled chicken terrine", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Tom De Blauwe", table: "South Tyrol", starter: "Sundried tomato tart", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            
+            // St John's Wood Table
+            { name: "Alex Tansey", table: "St John's Wood", starter: "Sundried tomato tart", main: "Pesto roasted chicken breast", dessert: "Choc and orange tart, orange gel" },
+            { name: "Alyesha Noakes", table: "St John's Wood", starter: "Sundried tomato tart", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Elle Hayes", table: "St John's Wood", starter: "Feta and black olive arancini", main: "Seared salmon medalion", dessert: "Choc and orange tart, orange gel" },
+            { name: "Hannah Thomas", table: "St John's Wood", starter: "Sundried tomato tart", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Jack Noakes", table: "St John's Wood", starter: "Pulled chicken terrine", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Mathias Hindar", table: "St John's Wood", starter: "Sundried tomato tart", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Robert Johnson", table: "St John's Wood", starter: "Sundried tomato tart", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Will Jones", table: "St John's Wood", starter: "Pulled chicken terrine", main: "Seared salmon medalion", dessert: "Choc and orange tart, orange gel" },
+            
+            // Thailand Table
+            { name: "Becky Ward", table: "Thailand", starter: "Feta and black olive arancini", main: "Seared salmon medalion", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Beth Clarke", table: "Thailand", starter: "Sundried tomato tart", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Callum New", table: "Thailand", starter: "Feta and black olive arancini", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Connor Rowe", table: "Thailand", starter: "Pulled chicken terrine", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Dionne Clarke", table: "Thailand", starter: "Pulled chicken terrine", main: "Seared salmon medalion", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Georgia Durban", table: "Thailand", starter: "Feta and black olive arancini", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Jodie Cassidy", table: "Thailand", starter: "Sundried tomato tart", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Lewis Ward", table: "Thailand", starter: "Pulled chicken terrine", main: "Seared salmon medalion", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Lorraine Durban", table: "Thailand", starter: "Feta and black olive arancini", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Matthew Taylor", table: "Thailand", starter: "Pulled chicken terrine", main: "Seared salmon medalion", dessert: "Sticky toffee pudding" },
+            
+            // The Lake District Table
+            { name: "Chris Thompson", table: "The Lake District", starter: "Sundried tomato tart", main: "Seared salmon medalion", dessert: "Choc and orange tart, orange gel" },
+            { name: "Diana Thompson", table: "The Lake District", starter: "Feta and black olive arancini", main: "Seared salmon medalion", dessert: "Choc and orange tart, orange gel" },
+            { name: "Fiona Wycherley", table: "The Lake District", starter: "Pulled chicken terrine", main: "Seared salmon medalion", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Helen Burt", table: "The Lake District", starter: "Pulled chicken terrine", main: "Seared salmon medalion", dessert: "Choc and orange tart, orange gel" },
+            { name: "Ian Wycherley", table: "The Lake District", starter: "Feta and black olive arancini", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "James Burt", table: "The Lake District", starter: "Pulled chicken terrine", main: "Seared salmon medalion", dessert: "Choc and orange tart, orange gel" },
+            { name: "Stuart Thompson", table: "The Lake District", starter: "Feta and black olive arancini", main: "Seared salmon medalion", dessert: "Sticky toffee pudding" },
+            { name: "Trina Thompson", table: "The Lake District", starter: "Pulled chicken terrine", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            
+            // The Three Valleys Table
+            { name: "Dave Wallis", table: "The Three Valleys", starter: "Pulled chicken terrine", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Deb Kirby", table: "The Three Valleys", starter: "Sundried tomato tart", main: "Seared salmon medalion", dessert: "Sticky toffee pudding" },
+            { name: "Helen Aitchison", table: "The Three Valleys", starter: "Feta and black olive arancini", main: "Seared salmon medalion", dessert: "Sticky toffee pudding" },
+            { name: "Helen Jack", table: "The Three Valleys", starter: "Pulled chicken terrine", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Helena Wallis", table: "The Three Valleys", starter: "Sundried tomato tart", main: "Pesto roasted chicken breast", dessert: "Choc and orange tart, orange gel" },
+            { name: "James Aitchison", table: "The Three Valleys", starter: "Sundried tomato tart", main: "Seared salmon medalion", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Neil Kirby", table: "The Three Valleys", starter: "Sundried tomato tart", main: "Seared salmon medalion", dessert: "Choc and orange tart, orange gel" },
+            
+            // Trevelyan Table
+            { name: "Alex Brown", table: "Trevelyan", starter: "Sundried tomato tart", main: "Seared salmon medalion", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Ed Lewis", table: "Trevelyan", starter: "Feta and black olive arancini", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Freddie Ridell", table: "Trevelyan", starter: "Feta and black olive arancini", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Josh Dronsfield", table: "Trevelyan", starter: "Pulled chicken terrine", main: "Seared salmon medalion", dessert: "Sticky toffee pudding" },
+            { name: "Max Clayton Clowes", table: "Trevelyan", starter: "Sundried tomato tart", main: "Garlic roasted butternut squash risotto", dessert: "Choc and orange tart, orange gel" },
+            { name: "Nurul Shamir", table: "Trevelyan", starter: "Sundried tomato tart", main: "Seared salmon medalion", dessert: "Choc and orange tart, orange gel" },
+            { name: "Sophie Marquand", table: "Trevelyan", starter: "Feta and black olive arancini", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Srinath Kailasa", table: "Trevelyan", starter: "Feta and black olive arancini", main: "Seared salmon medalion", dessert: "Sticky toffee pudding" },
+            { name: "Suzie Brown", table: "Trevelyan", starter: "Pulled chicken terrine", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            
+            // Vietnam Table
+            { name: "Brendan Burke", table: "Vietnam", starter: "Pulled chicken terrine", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Erin McIntyre", table: "Vietnam", starter: "Feta and black olive arancini", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Eva McIntyre", table: "Vietnam", starter: "Feta and black olive arancini", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Hannah McIntyre", table: "Vietnam", starter: "Chicken lollipops", main: "Homemade pizza, beans and hand cut chips", dessert: "Chocolate truffle cake with whipped cream" },
+            { name: "Jack Burke", table: "Vietnam", starter: "Feta and black olive arancini", main: "Garlic roasted butternut squash risotto", dessert: "Sticky toffee pudding" },
+            { name: "Joe Burke", table: "Vietnam", starter: "Pulled chicken terrine", main: "Seared salmon medalion", dessert: "Choc and orange tart, orange gel" },
+            { name: "Luke Tyler", table: "Vietnam", starter: "Sundried tomato tart", main: "Pesto roasted chicken breast", dessert: "Sticky toffee pudding" },
+            { name: "Mary Burke", table: "Vietnam", starter: "Pulled chicken terrine", main: "Seared salmon medalion", dessert: "Sticky toffee pudding" },
+            { name: "Patrick McIntyre", table: "Vietnam", starter: "Pulled chicken terrine", main: "Seared salmon medalion", dessert: "Sticky toffee pudding" },
+            { name: "Sarah Burke", table: "Vietnam", starter: "Sundried tomato tart", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            
+            // West Hampstead Table
+            { name: "Adam Lockett", table: "West Hampstead", starter: "Sundried tomato tart", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Ceri O'Brien", table: "West Hampstead", starter: "Pulled chicken terrine", main: "Seared salmon medalion", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Emily Ellett", table: "West Hampstead", starter: "Feta and black olive arancini", main: "Garlic roasted butternut squash risotto", dessert: "Choc and orange tart, orange gel" },
+            { name: "Evie Miles", table: "West Hampstead", starter: "Feta and black olive arancini", main: "Seared salmon medalion", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Gonzalo Machuca", table: "West Hampstead", starter: "Pulled chicken terrine", main: "Seared salmon medalion", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Hugo Brown", table: "West Hampstead", starter: "Pulled chicken terrine", main: "Pesto roasted chicken breast", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Imogen Coutts", table: "West Hampstead", starter: "Sundried tomato tart", main: "Garlic roasted butternut squash risotto", dessert: "Sticky toffee pudding" },
+            { name: "Katya Pugh", table: "West Hampstead", starter: "Sundried tomato tart", main: "Seared salmon medalion", dessert: "White chocolate & raspberry cheesecake" },
+            { name: "Mark Pugh", table: "West Hampstead", starter: "Pulled chicken terrine", main: "Seared salmon medalion", dessert: "Sticky toffee pudding" },
+            { name: "Samuel Clark", table: "West Hampstead", starter: "Feta and black olive arancini", main: "Seared salmon medalion", dessert: "Choc and orange tart, orange gel" }
+          ];
+
+          const [searchTerm, setSearchTerm] = useState('');
+          const [selectedGuest, setSelectedGuest] = useState(null);
+          const [highlightedGuest, setHighlightedGuest] = useState(null);
+          const [suggestions, setSuggestions] = useState([]);
+          const [selectedGuestDetails, setSelectedGuestDetails] = useState(null);
+          const [scale, setScale] = useState(1);
+          const containerRef = useRef(null);
+          
+          // Group guests by table
+          const tableGroups = guestData.reduce((acc, guest) => {
+            if (!acc[guest.table]) {
+              acc[guest.table] = [];
+            }
+            acc[guest.table].push(guest);
+            return acc;
+          }, {});
+          
+          // Arrange tables
+          const tables = Object.entries(tableGroups);
+          
+          // Handle search input
+          const handleSearch = (value) => {
+            setSearchTerm(value);
+            
+            if (value.length > 0) {
+              const filtered = guestData
+                .filter(guest => guest.name.toLowerCase().startsWith(value.toLowerCase()))
+                .slice(0, 5)
+                .map(guest => guest.name);
+              setSuggestions(filtered);
+            } else {
+              setSuggestions([]);
+            }
+          };
+          
+          // Select guest from suggestions
+          const selectGuest = (guestName) => {
+            const guest = guestData.find(g => g.name === guestName);
+            if (guest) {
+              setSelectedGuest(guest);
+              setHighlightedGuest(guestName);
+              setSearchTerm('');
+              setSuggestions([]);
+              
+              // Scroll to the table
+              const tableId = `table-${guest.table.replace(/\s+/g, '-')}`;
+              const tableElement = document.getElementById(tableId);
+              if (tableElement) {
+                tableElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+              
+              // Remove highlight after animation
+              setTimeout(() => {
+                setHighlightedGuest(null);
+              }, 2000);
+            }
+          };
+          
+          // Show guest menu details
+          const showGuestDetails = (guest) => {
+            setSelectedGuestDetails(guest);
+          };
+          
+          // Close details overlay
+          const closeDetails = () => {
+            setSelectedGuestDetails(null);
+          };
+          
+          // Handle pinch to zoom
+          useEffect(() => {
+            let startDistance = 0;
+            let startScale = 1;
+            
+            const handleTouchStart = (e) => {
+              if (e.touches.length === 2) {
+                const touch1 = e.touches[0];
+                const touch2 = e.touches[1];
+                startDistance = Math.hypot(
+                  touch2.clientX - touch1.clientX,
+                  touch2.clientY - touch1.clientY
+                );
+                startScale = scale;
+              }
+            };
+            
+            const handleTouchMove = (e) => {
+              if (e.touches.length === 2) {
+                e.preventDefault();
+                const touch1 = e.touches[0];
+                const touch2 = e.touches[1];
+                const distance = Math.hypot(
+                  touch2.clientX - touch1.clientX,
+                  touch2.clientY - touch1.clientY
+                );
+                
+                const newScale = Math.min(Math.max(0.5, startScale * (distance / startDistance)), 2);
+                setScale(newScale);
+              }
+            };
+            
+            const container = containerRef.current;
+            if (container) {
+              container.addEventListener('touchstart', handleTouchStart, { passive: false });
+              container.addEventListener('touchmove', handleTouchMove, { passive: false });
+              
+              return () => {
+                container.removeEventListener('touchstart', handleTouchStart);
+                container.removeEventListener('touchmove', handleTouchMove);
+              };
+            }
+          }, [scale]);
+          
+          return (
+            <div className="min-h-screen p-4 relative overflow-hidden" style={{ backgroundColor: '#fffef7', fontFamily: '"Source Sans Pro", sans-serif' }}>
+              {/* Header */}
+              <div className="text-center mb-4">
+                <h1 className="text-3xl font-light mb-2" style={{ color: '#474747', letterSpacing: '2px' }}>
+                  REBECCA & BEN'S WEDDING
+                </h1>
+                <p className="text-xl font-light" style={{ color: '#474747', letterSpacing: '1px' }}>
+                  SEATING PLAN
+                </p>
+              </div>
+              
+              {/* Search Box */}
+              <div className="max-w-md mx-auto mb-6">
+                <div className="bg-white rounded-full shadow-sm p-1 relative" style={{ border: '1px solid #cccccc' }}>
+                  <div className="relative">
+                    <div className="absolute left-4 top-1/2 transform -translate-y-1/2" style={{ color: '#cccccc' }}>
+                      <Search size={20} />
+                    </div>
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => handleSearch(e.target.value)}
+                      placeholder="Search for your name..."
+                      className="w-full pl-12 pr-4 py-3 rounded-full focus:outline-none"
+                      style={{ 
+                        color: '#474747',
+                        fontFamily: '"Source Sans Pro", sans-serif',
+                        backgroundColor: 'transparent'
+                      }}
+                    />
+                  </div>
+                  
+                  {/* Suggestions Dropdown */}
+                  {suggestions.length > 0 && (
+                    <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-lg shadow-md overflow-hidden z-20" style={{ border: '1px solid #cccccc' }}>
+                      {suggestions.map((name) => (
+                        <button
+                          key={name}
+                          onClick={() => selectGuest(name)}
+                          className="w-full text-left px-4 py-2 transition-colors hover:bg-gray-100"
+                          style={{ 
+                            color: '#474747',
+                            backgroundColor: 'white',
+                            fontFamily: '"Source Sans Pro", sans-serif'
+                          }}
+                        >
+                          {name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Main Container */}
+              <div 
+                ref={containerRef}
+                className="max-w-4xl mx-auto relative overflow-auto"
+                style={{ minHeight: 'calc(100vh - 300px)' }}
+              >
+                {/* Tables arranged in grid */}
+                <div 
+                  className="relative"
+                  style={{ transform: `scale(${scale})`, transformOrigin: 'center' }}
+                >
+                  {/* Table Layout */}
+                  <div className="grid grid-cols-1 gap-4 p-4">
+                    {tables.map(([tableName, guests], index) => {
+                      const isHighlightedTable = selectedGuest?.table === tableName;
+                      
+                      return (
+                        <div
+                          key={tableName}
+                          id={`table-${tableName.replace(/\s+/g, '-')}`}
+                          className="bg-white rounded-lg shadow-sm p-6 transition-all duration-300"
+                          style={{ 
+                            border: isHighlightedTable ? '2px solid #069c42' : '1px solid #cccccc',
+                            transform: isHighlightedTable ? 'scale(1.02)' : 'scale(1)'
+                          }}
+                        >
+                          <h3 className="font-light text-2xl mb-4 text-center" style={{ 
+                            color: '#474747',
+                            letterSpacing: '1px',
+                            textTransform: 'uppercase'
+                          }}>
+                            {tableName}
+                          </h3>
+                          <div className="grid grid-cols-2 gap-2">
+                            {guests.map((guest) => (
+                              <button
+                                key={guest.name}
+                                onClick={() => showGuestDetails(guest)}
+                                className={`text-center px-3 py-2 rounded transition-all duration-300 hover:bg-gray-100 ${
+                                  highlightedGuest === guest.name
+                                    ? 'animate-pulse font-semibold'
+                                    : ''
+                                }`}
+                                style={{ 
+                                  color: '#474747',
+                                  backgroundColor: highlightedGuest === guest.name ? '#e8f5e9' : 'transparent',
+                                  fontFamily: '"Source Sans Pro", sans-serif'
+                                }}
+                              >
+                                {guest.name}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Guest Details Overlay */}
+              {selectedGuestDetails && (
+                <div 
+                  className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+                  onClick={closeDetails}
+                >
+                  <div 
+                    className="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full"
+                    onClick={(e) => e.stopPropagation()}
+                    style={{ fontFamily: '"Source Sans Pro", sans-serif' }}
+                  >
+                    <h2 className="text-2xl font-light mb-4" style={{ color: '#474747', letterSpacing: '1px' }}>
+                      {selectedGuestDetails.name}
+                    </h2>
+                    <p className="mb-4" style={{ color: '#474747' }}>
+                      Table: <span style={{ color: '#069c42', fontWeight: '600' }}>{selectedGuestDetails.table}</span>
+                    </p>
+                    
+                    <div className="space-y-4">
+                      <div className="rounded-lg p-4" style={{ backgroundColor: '#f9f9f9', border: '1px solid #cccccc' }}>
+                        <h3 className="font-semibold mb-3 flex items-center gap-2" style={{ color: '#474747' }}>
+                          <Utensils size={16} style={{ color: '#069c42' }} />
+                          Menu Selections
+                        </h3>
+                        <div className="space-y-3 text-sm">
+                          <div>
+                            <span className="font-medium" style={{ color: '#474747' }}>Starter:</span>
+                            <p style={{ color: '#474747' }}>{selectedGuestDetails.starter}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium" style={{ color: '#474747' }}>Main:</span>
+                            <p style={{ color: '#474747' }}>{selectedGuestDetails.main}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium" style={{ color: '#474747' }}>Dessert:</span>
+                            <p style={{ color: '#474747' }}>{selectedGuestDetails.dessert}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <button
+                      onClick={closeDetails}
+                      className="mt-6 w-full py-3 rounded-full text-white transition-colors hover:bg-green-700"
+                      style={{ 
+                        backgroundColor: '#069c42',
+                        fontFamily: '"Source Sans Pro", sans-serif',
+                        letterSpacing: '1px'
+                      }}
+                    >
+                      CLOSE
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              {/* Zoom indicator */}
+              {scale !== 1 && (
+                <div className="fixed bottom-4 right-4 bg-white rounded-lg shadow-sm px-3 py-1 text-sm" style={{ 
+                  border: '1px solid #cccccc',
+                  color: '#474747',
+                  fontFamily: '"Source Sans Pro", sans-serif'
+                }}>
+                  Zoom: {Math.round(scale * 100)}%
+                </div>
+              )}
+            </div>
+          );
+        };
+
+        ReactDOM.render(<WeddingSeatingDirectory />, document.getElementById('root'));
+    </script>
+</body>
+</html>
